@@ -1,0 +1,2366 @@
+```html
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator Gaji & Lembur PMI Taiwan (Formal & Caregiver)</title>
+    <!-- PWA & Mobile Web App Meta Tags -->
+    <meta name="theme-color" content="#059669">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Gaji PMI TW">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styling for smooth range sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 8px;
+            border-radius: 9999px;
+            background: #e2e8f0;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 22px;
+            width: 22px;
+            border-radius: 50%;
+            background: #0d9488;
+            border: 3px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(13, 148, 136, 0.4);
+            margin-top: -7px;
+            transition: transform 0.15s ease, background-color 0.15s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.12);
+            background: #0f766e;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased selection:bg-teal-100 selection:text-teal-900 pb-12">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-teal-900 via-teal-800 to-emerald-800 text-white shadow-md sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 sm:py-4 flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/15 backdrop-blur-sm p-2.5 rounded-xl border border-white/20">
+                    <i data-lucide="calculator" class="w-6 h-6 text-teal-200"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <h1 class="text-base sm:text-xl font-bold tracking-tight leading-tight">Kalkulator Gaji &amp; Lembur PMI Taiwan</h1>
+                        <!-- Status Koneksi Online/Offline -->
+                        <span id="networkStatusBadge" class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/25 text-emerald-100 border border-emerald-400/40">
+                            <span id="networkStatusDot" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                            <span id="networkStatusText">Online</span>
+                        </span>
+                    </div>
+                    <p class="text-[11px] sm:text-xs text-teal-100/90">Simulasi Take-Home Pay, Log Harian, Pajak 183 Hari &amp; Riwayat Slip</p>
+                </div>
+            </div>
+            
+            <!-- Right Header Controls: Install PWA + Kurs Converter -->
+            <div class="flex items-center gap-2 flex-wrap">
+                <button type="button" id="installPwaBtn" onclick="triggerInstallPwa()"
+                    class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-3 py-1.5 rounded-xl text-xs shadow-sm transition cursor-pointer">
+                    <i data-lucide="smartphone" class="w-3.5 h-3.5"></i>
+                    <span>Install Aplikasi</span>
+                </button>
+
+                <!-- Kurs Converter Pill -->
+                <div class="flex items-center gap-2 bg-teal-950/60 border border-teal-500/30 px-3 py-1.5 rounded-xl text-xs sm:text-sm">
+                    <span class="text-teal-200 font-medium">Kurs 1 NTD =</span>
+                    <div class="relative flex items-center">
+                        <span class="text-teal-300 font-semibold mr-1">Rp</span>
+                        <input type="number" id="kursIdr" value="505" min="100" max="2000" step="5"
+                            class="w-16 bg-white/10 text-white font-bold px-2 py-0.5 rounded-lg border border-white/20 focus:outline-none focus:border-teal-300 text-right">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-6xl mx-auto px-4 pt-5 sm:pt-7 space-y-6">
+
+        <!-- TOP BAR: SWITCH MODE SEKTOR UTAMA -->
+        <div class="bg-white p-2 rounded-2xl shadow-sm border border-slate-200/80 grid grid-cols-2 gap-2">
+            <button type="button" id="tabSectorFormal" onclick="switchSector('formal')"
+                class="py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all bg-teal-700 text-white shadow-sm">
+                <i data-lucide="factory" class="w-4 h-4 shrink-0"></i>
+                <span>Sektor Formal <span class="hidden sm:inline">(Pabrik, Konstruksi, Panti)</span></span>
+            </button>
+            <button type="button" id="tabSectorInformal" onclick="switchSector('informal')"
+                class="py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all text-slate-600 hover:bg-slate-100">
+                <i data-lucide="heart-handshake" class="w-4 h-4 shrink-0"></i>
+                <span>Sektor Informal <span class="hidden sm:inline">(Caregiver / PRT)</span></span>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <!-- LEFT COLUMN: INPUT PARAMETERS (7 cols) -->
+            <div class="lg:col-span-7 space-y-6">
+                
+                <!-- 1. UPAH POKOK & PRESET TAHUN -->
+                <section class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">1</span>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-800">Upah Pokok Bulanan</h2>
+                        </div>
+                        
+                        <!-- Preset Tahun Formal -->
+                        <div id="formalPresets" class="flex flex-wrap gap-1.5">
+                            <button type="button" id="btnYear2026" onclick="setBaseSalaryPreset(29500, '2026')"
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-600 text-white shadow-sm transition">
+                                2026 (NTD 29.500)
+                            </button>
+                            <button type="button" id="btnYear2027" onclick="setBaseSalaryPreset(30900, '2027')"
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                                2027 (NTD 30.900)
+                            </button>
+                        </div>
+
+                        <!-- Preset Kontrak Informal -->
+                        <div id="informalPresets" class="hidden flex-wrap gap-1.5">
+                            <button type="button" id="btnInf20k" onclick="setBaseSalaryPreset(20000, 'inf20')"
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-600 text-white shadow-sm transition">
+                                Kontrak Standar (20.000)
+                            </button>
+                            <button type="button" id="btnInf295k" onclick="setBaseSalaryPreset(29500, 'inf295')"
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+                                Kontrak Baru (29.500)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200/60">
+                        <div>
+                            <label for="baseSalary" class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Gaji Pokok (NTD)</label>
+                            <div class="relative">
+                                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">NTD</span>
+                                <input type="number" id="baseSalary" value="29500" min="15000" max="150000" step="100"
+                                    class="w-full pl-14 pr-4 py-2.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-800 text-lg focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2.5 text-center">
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200/80">
+                                <span class="block text-[11px] text-slate-500">Tarif Dasar / Jam</span>
+                                <span id="hourlyRateDisplay" class="font-bold text-teal-700 text-sm sm:text-base">NTD 122,92</span>
+                                <span class="block text-[10px] text-slate-400">Pokok ÷ 240 jam</span>
+                            </div>
+                            <div class="bg-white p-2.5 rounded-xl border border-slate-200/80">
+                                <span class="block text-[11px] text-slate-500">Batas Pajak 18%</span>
+                                <span id="taxThresholdDisplay" class="font-bold text-amber-700 text-sm sm:text-base">NTD 44.250</span>
+                                <span class="block text-[10px] text-slate-400">1,5× Upah Pokok</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2A. PANEL SEKTOR FORMAL -->
+                <section id="formalSection" class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">2</span>
+                            <div>
+                                <h2 class="text-base sm:text-lg font-bold text-slate-800">Perhitungan Lembur Formal</h2>
+                                <p class="text-xs text-slate-500">Tarif bertingkat Pasal 24 UU Ketenagakerjaan Taiwan</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tabs: Mode Cepat vs Log Kalender Harian -->
+                    <div class="bg-slate-100 p-1 rounded-xl grid grid-cols-2 gap-1">
+                        <button type="button" id="subTabSlider" onclick="switchFormalInputMode('slider')"
+                            class="py-2 px-3 rounded-lg text-xs font-bold bg-white text-teal-800 shadow-sm flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
+                            <span>Mode Cepat (Slider)</span>
+                        </button>
+                        <button type="button" id="subTabCalendar" onclick="switchFormalInputMode('calendar')"
+                            class="py-2 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition">
+                            <i data-lucide="calendar-days" class="w-3.5 h-3.5"></i>
+                            <span>Log Absensi Kalender</span>
+                        </button>
+                    </div>
+
+                    <!-- SUB-PANEL 1: SLIDER RATA-RATA -->
+                    <div id="formalSliderPanel" class="space-y-4">
+                        <!-- Hari Kerja Biasa -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-3.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                    <i data-lucide="briefcase" class="w-4 h-4 text-teal-600"></i>
+                                    Hari Kerja Biasa (Senin–Jumat)
+                                </span>
+                                <span id="wdSubtotalBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-teal-100 text-teal-800">+ NTD 0</span>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                    <span class="text-slate-600">Jumlah Hari Lembur</span>
+                                    <span class="font-bold text-teal-700"><span id="wdDaysVal">10</span> hari</span>
+                                </div>
+                                <input type="range" id="wdDays" min="0" max="22" step="1" value="10" class="w-full">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                    <span class="text-slate-600">Durasi Rata-rata per Hari</span>
+                                    <span class="font-bold text-teal-700"><span id="wdHoursVal">3.5</span> jam (2 jam 1,34× + sisa 1,67×)</span>
+                                </div>
+                                <input type="range" id="wdHours" min="0" max="4" step="0.5" value="3.5" class="w-full">
+                            </div>
+                        </div>
+
+                        <!-- Hari Istirahat Sabtu -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-3.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                    <i data-lucide="calendar-plus" class="w-4 h-4 text-indigo-600"></i>
+                                    Hari Istirahat (Sabtu / 休息日)
+                                </span>
+                                <span id="rdSubtotalBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-800">+ NTD 0</span>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                    <span class="text-slate-600">Jumlah Sabtu Masuk Kerja</span>
+                                    <span class="font-bold text-indigo-700"><span id="rdDaysVal">3</span> hari</span>
+                                </div>
+                                <input type="range" id="rdDays" min="0" max="5" step="1" value="3" class="w-full">
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                    <span class="text-slate-600">Durasi Kerja per Sabtu</span>
+                                    <span class="font-bold text-indigo-700"><span id="rdHoursVal">8</span> jam</span>
+                                </div>
+                                <input type="range" id="rdHours" min="0" max="12" step="1" value="8" class="w-full">
+                            </div>
+                        </div>
+
+                        <!-- Hari Libur Nasional -->
+                        <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                    <i data-lucide="flag" class="w-4 h-4 text-rose-600"></i>
+                                    Hari Libur Nasional (國定假日)
+                                </span>
+                                <span id="nhSubtotalBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800">+ NTD 0</span>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                    <span class="text-slate-600">Masuk Kerja di Tanggal Merah (8 jam)</span>
+                                    <span class="font-bold text-rose-700"><span id="nhDaysVal">0</span> hari (+1× upah harian)</span>
+                                </div>
+                                <input type="range" id="nhDays" min="0" max="4" step="1" value="0" class="w-full">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SUB-PANEL 2: LOG ABSENSI KALENDER MINI -->
+                    <div id="formalCalendarPanel" class="hidden space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                            <div class="flex items-center gap-2">
+                                <select id="calMonth" onchange="renderCalendar()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <option value="0">Januari</option>
+                                    <option value="1">Februari</option>
+                                    <option value="2">Maret</option>
+                                    <option value="3">April</option>
+                                    <option value="4">Mei</option>
+                                    <option value="5">Juni</option>
+                                    <option value="6">Juli</option>
+                                    <option value="7">Agustus</option>
+                                    <option value="8">September</option>
+                                    <option value="9">Oktober</option>
+                                    <option value="10" selected>November</option>
+                                    <option value="11">Desember</option>
+                                </select>
+                                <select id="calYear" onchange="renderCalendar()" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                                    <option value="2026" selected>2026</option>
+                                    <option value="2027">2027</option>
+                                </select>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <button type="button" onclick="seedSampleCalendar()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-teal-50 text-teal-700 hover:bg-teal-100 border border-teal-200 transition">
+                                    Isi Contoh
+                                </button>
+                                <button type="button" onclick="resetCalendarMonth()" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 transition">
+                                    Reset Bulan
+                                </button>
+                            </div>
+                        </div>
+
+                        <p class="text-xs text-slate-500">
+                            👆 Klik tanggal mana saja pada kalender di bawah untuk mencatat jenis hari dan durasi jam lembur harian Anda.
+                        </p>
+
+                        <!-- Calendar Day Headers -->
+                        <div class="grid grid-cols-7 gap-1 text-center text-[11px] font-bold text-slate-500">
+                            <div class="text-rose-500">Min</div>
+                            <div>Sen</div>
+                            <div>Sel</div>
+                            <div>Rab</div>
+                            <div>Kam</div>
+                            <div>Jum</div>
+                            <div class="text-indigo-600">Sab</div>
+                        </div>
+
+                        <!-- Calendar Grid -->
+                        <div id="calendarGrid" class="grid grid-cols-7 gap-1.5"></div>
+
+                        <!-- Legend -->
+                        <div class="flex flex-wrap gap-3 text-[11px] text-slate-600 pt-1">
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-teal-500"></span>Hari Kerja Biasa</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-indigo-500"></span>Hari Istirahat (Sabtu)</span>
+                            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-rose-500"></span>Libur Nasional</span>
+                        </div>
+                    </div>
+
+                    <!-- Indikator Kuota Lembur Legal (46 Jam/Bulan) -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div class="flex justify-between items-center text-xs sm:text-sm">
+                            <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                                <i data-lucide="gauge" class="w-4 h-4 text-teal-600"></i>
+                                Kuota Lembur Legal (Pasal 32)
+                            </span>
+                            <span id="quotaTextBadge" class="font-extrabold text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                                35,0 / 46 Jam
+                            </span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                            <div id="quotaProgressBar" class="h-full bg-emerald-500 transition-all duration-300 rounded-full" style="width: 76%"></div>
+                        </div>
+                        <p id="quotaHelperText" class="text-[11px] text-slate-500">
+                            Batas standar legal 46 jam/bulan (maksimal fleksibel 54 jam dengan persetujuan serikat/rapat buruh).
+                        </p>
+                    </div>
+                </section>
+
+                <!-- 2B. PANEL SEKTOR INFORMAL (CAREGIVER / PRT) -->
+                <section id="informalSection" class="hidden bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">2</span>
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-800">Lembur Sektor Informal (Caregiver / PRT)</h2>
+                            <p class="text-xs text-slate-500">Berdasarkan kontrak kerja rumah tangga (tidak terikat UU Pasal 24)</p>
+                        </div>
+                    </div>
+
+                    <!-- Lembur Hari Minggu / Libur Mingguan -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <i data-lucide="sun" class="w-4 h-4 text-amber-600"></i>
+                                Masuk di Hari Libur Mingguan (Minggu)
+                            </span>
+                            <span id="infSundayBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800">+ NTD 2.667</span>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                <span class="text-slate-600">Jumlah Hari Minggu Tetap Bekerja</span>
+                                <span class="font-bold text-amber-700"><span id="infSundayDaysVal">4</span> hari / bulan</span>
+                            </div>
+                            <input type="range" id="infSundayDays" min="0" max="5" step="1" value="4" class="w-full">
+                        </div>
+                        <p class="text-[11px] text-slate-500 bg-white p-2.5 rounded-lg border border-slate-200/60">
+                            💡 Tarif per hari libur mingguan = Upah Pokok ÷ 30 hari (<strong id="infDailyRateDisplay">NTD 667</strong>/hari).
+                        </p>
+                    </div>
+
+                    <!-- Libur Nasional Caregiver -->
+                    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200/70 space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-sm text-slate-800 flex items-center gap-2">
+                                <i data-lucide="flag" class="w-4 h-4 text-rose-600"></i>
+                                Masuk Saat Hari Libur Nasional
+                            </span>
+                            <span id="infNhBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-rose-100 text-rose-800">+ NTD 0</span>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-xs sm:text-sm mb-1">
+                                <span class="text-slate-600">Jumlah Tanggal Merah Bekerja</span>
+                                <span class="font-bold text-rose-700"><span id="infNhDaysVal">0</span> hari (+1× upah harian)</span>
+                            </div>
+                            <input type="range" id="infNhDays" min="0" max="4" step="1" value="0" class="w-full">
+                        </div>
+                    </div>
+
+                    <!-- Opsi Asuransi Sektor Informal -->
+                    <div class="p-4 rounded-xl bg-teal-50/60 border border-teal-200/80 space-y-2.5">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Potongan Asuransi Kesehatan (NHI)</span>
+                                <span class="text-[11px] text-slate-600">Wajib untuk seluruh PMI (kelas dasar ~NTD 458/bulan)</span>
+                            </div>
+                            <input type="checkbox" id="infIncludeNhi" checked onchange="calculateAll()" class="w-5 h-5 accent-teal-600 rounded">
+                        </label>
+                        <hr class="border-teal-200/60">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <div>
+                                <span class="text-xs sm:text-sm font-bold text-slate-800 block">Ikut Labor Insurance (LI) Sukarela</span>
+                                <span class="text-[11px] text-slate-600">Asuransi kecelakaan kerja (OAI) ditanggung majikan; LI bersifat sukarela</span>
+                            </div>
+                            <input type="checkbox" id="infIncludeLi" onchange="calculateAll()" class="w-5 h-5 accent-teal-600 rounded">
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 3. TUNJANGAN & BONUS TAMBAHAN -->
+                <section class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">3</span>
+                            <div>
+                                <h2 class="text-base sm:text-lg font-bold text-slate-800">Tunjangan &amp; Bonus Pabrik/Majikan</h2>
+                                <p class="text-xs text-slate-500">Opsional (isi 0 jika tidak ada; ikut dihitung ke gaji kotor &amp; pajak)</p>
+                            </div>
+                        </div>
+                        <span id="allowanceTotalBadge" class="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800">+ NTD 0</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tunjangan Makan (伙食津貼)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">NTD</span>
+                                <input type="number" id="mealAllowance" value="0" min="0" step="100" oninput="calculateAll()"
+                                    class="w-full pl-11 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Tunjangan Shift Malam / Transport</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">NTD</span>
+                                <input type="number" id="shiftAllowance" value="0" min="0" step="100" oninput="calculateAll()"
+                                    class="w-full pl-11 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Bonus Kerajinan (全勤獎金)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">NTD</span>
+                                <input type="number" id="attendanceBonus" value="0" min="0" step="100" oninput="calculateAll()"
+                                    class="w-full pl-11 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-600 mb-1">Bonus / Insentif Lainnya</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">NTD</span>
+                                <input type="number" id="otherBonus" value="0" min="0" step="100" oninput="calculateAll()"
+                                    class="w-full pl-11 pr-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. POTONGAN AGENSI, PAJAK & MES -->
+                <section class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-5">
+                    <div class="flex items-center gap-2.5">
+                        <span class="w-8 h-8 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">4</span>
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-slate-800">Potongan Agensi, Pajak &amp; Mes</h2>
+                            <p class="text-xs text-slate-500">Sesuaikan dengan tahun kontrak dan lama tinggal Anda di Taiwan</p>
+                        </div>
+                    </div>
+
+                    <!-- Tahun Kontrak (Biaya Agensi) -->
+                    <div>
+                        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2">Tahun Masa Kontrak (Biaya Servis Agensi)</label>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button type="button" onclick="selectAgency(this, 1800)"
+                                class="agency-btn p-2.5 rounded-xl border-2 border-teal-600 bg-teal-50/70 text-left transition">
+                                <span class="block text-xs font-bold text-slate-800">Tahun ke-1</span>
+                                <span class="block text-sm font-extrabold text-teal-700">NTD 1.800</span>
+                            </button>
+                            <button type="button" onclick="selectAgency(this, 1700)"
+                                class="agency-btn p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition">
+                                <span class="block text-xs font-bold text-slate-800">Tahun ke-2</span>
+                                <span class="block text-sm font-extrabold text-slate-700">NTD 1.700</span>
+                            </button>
+                            <button type="button" onclick="selectAgency(this, 1500)"
+                                class="agency-btn p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition">
+                                <span class="block text-xs font-bold text-slate-800">Tahun ke-3+</span>
+                                <span class="block text-sm font-extrabold text-slate-700">NTD 1.500</span>
+                            </button>
+                            <button type="button" onclick="selectAgency(this, 0)"
+                                class="agency-btn p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition">
+                                <span class="block text-xs font-bold text-slate-800">Direct / Bebas</span>
+                                <span class="block text-sm font-extrabold text-emerald-700">NTD 0</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Status Pajak 183 Hari -->
+                    <div>
+                        <label class="block text-xs sm:text-sm font-bold text-slate-700 mb-2">Status Pajak (Tahun Kalender Jan–Des)</label>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            <button type="button" id="taxUnder183" onclick="selectTaxStatus(false)"
+                                class="p-3 rounded-xl border-2 border-teal-600 bg-teal-50/70 text-left transition flex items-start gap-2.5">
+                                <i data-lucide="calendar-clock" class="w-4 h-4 text-teal-700 shrink-0 mt-0.5"></i>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-800">&lt; 183 Hari di Taiwan Tahun Ini</span>
+                                    <span class="block text-[11px] text-slate-600 mt-0.5">Pajak <strong>6%</strong> (atau <strong>18%</strong> jika gaji kotor &gt; 1,5× pokok)</span>
+                                </div>
+                            </button>
+                            <button type="button" id="taxOver183" onclick="selectTaxStatus(true)"
+                                class="p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition flex items-start gap-2.5">
+                                <i data-lucide="badge-check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-800">≥ 183 Hari di Taiwan Tahun Ini</span>
+                                    <span class="block text-[11px] text-slate-600 mt-0.5">Potongan bulanan <strong>NTD 0</strong> (PTKP ~NTD 464.000/thn)</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Mes & Potongan Lain -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 items-center bg-slate-50 p-4 rounded-xl border border-slate-200/70">
+                        <div>
+                            <div class="flex justify-between text-xs mb-1.5">
+                                <span class="font-bold text-slate-700">Potongan Mes &amp; Makan</span>
+                                <span class="font-extrabold text-slate-800">NTD <span id="dormFeeVal">2.500</span></span>
+                            </div>
+                            <input type="range" id="dormFee" min="0" max="5000" step="100" value="2500" class="w-full">
+                            <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                                <span>0</span>
+                                <span>2.500</span>
+                                <span>5.000</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Potongan Lainnya (Opsional)</label>
+                            <div class="relative">
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs font-bold">NTD</span>
+                                <input type="number" id="otherDeduction" value="0" min="0" step="50" oninput="calculateAll()"
+                                    class="w-full pl-11 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- RIGHT COLUMN: STICKY RESULT SUMMARY (5 cols) -->
+            <div class="lg:col-span-5 lg:sticky lg:top-20 space-y-5">
+                
+                <!-- Main Take-Home Pay Card -->
+                <div class="bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 text-white p-6 rounded-3xl shadow-xl border border-teal-800/60 relative overflow-hidden">
+                    <div class="absolute -right-12 -top-12 w-44 h-44 bg-teal-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                    
+                    <div class="flex items-center justify-between mb-1.5">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-teal-300">Estimasi Gaji Bersih (Take-Home Pay)</span>
+                        <span id="sectorBadgeResult" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-teal-500/20 text-teal-200 border border-teal-400/30">
+                            Formal
+                        </span>
+                    </div>
+
+                    <div class="my-2">
+                        <div class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white" id="netPayNtd">
+                            NTD 35.154
+                        </div>
+                        <div class="text-sm sm:text-base font-semibold text-teal-300 mt-1 flex items-center gap-1.5">
+                            <i data-lucide="banknote" class="w-4 h-4"></i>
+                            <span>≈ <span id="netPayIdr">Rp 17.752.770</span></span>
+                        </div>
+                    </div>
+
+                    <!-- Composition Bar -->
+                    <div class="mt-5 pt-4 border-t border-white/10">
+                        <div class="flex justify-between text-[11px] text-slate-300 mb-1.5">
+                            <span>Gaji Kotor: <strong id="grossPayBarLabel" class="text-white">NTD 40.522</strong></span>
+                            <span id="netPercentLabel" class="text-teal-300 font-bold">86,8% Bersih</span>
+                        </div>
+                        <div class="w-full h-3.5 bg-slate-800 rounded-full overflow-hidden flex p-0.5 gap-0.5">
+                            <div id="barBase" class="bg-teal-500 h-full rounded-l-full transition-all duration-300" style="width: 55%" title="Pokok"></div>
+                            <div id="barOt" class="bg-emerald-400 h-full transition-all duration-300" style="width: 25%" title="Lembur"></div>
+                            <div id="barBonus" class="bg-amber-400 h-full transition-all duration-300" style="width: 5%" title="Tunjangan/Bonus"></div>
+                            <div id="barDeduction" class="bg-rose-500 h-full rounded-r-full transition-all duration-300" style="width: 15%" title="Potongan"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-[10px] text-slate-300">
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-teal-500"></span>Pokok</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span>Lembur</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span>Tunjangan</span>
+                            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-rose-500"></span>Potongan</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Tax Warning Banner -->
+                <div id="taxAlertBox" class="p-4 rounded-2xl border text-xs sm:text-sm transition-all">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 shrink-0 mt-0.5"></i>
+                        <div>
+                            <h4 id="taxAlertTitle" class="font-bold">Status Pajak</h4>
+                            <p id="taxAlertDesc" class="mt-1 leading-relaxed"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Payslip Breakdown -->
+                <div class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                        <h3 class="font-bold text-slate-800 flex items-center gap-2 text-sm sm:text-base">
+                            <i data-lucide="receipt" class="w-4 h-4 text-teal-600"></i>
+                            Rincian Slip Gaji
+                        </h3>
+                        <div class="flex gap-1.5">
+                            <button type="button" onclick="copySummary()" class="text-xs font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                                <span>Salin WA</span>
+                            </button>
+                            <button type="button" onclick="downloadPayslipPng()" class="text-xs font-semibold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                                <span>Unduh PNG</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Pendapatan Kotor -->
+                    <div>
+                        <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-emerald-700 mb-2">
+                            <span>A. Pendapatan Kotor</span>
+                            <span id="grossTotalDisplay">NTD 40.522</span>
+                        </div>
+                        <div class="space-y-1.5 text-xs sm:text-sm" id="earningsBreakdownList">
+                            <!-- Filled dynamically by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Potongan -->
+                    <div class="pt-2 border-t border-slate-100">
+                        <div class="flex justify-between items-center text-xs font-bold uppercase tracking-wider text-rose-700 mb-2">
+                            <span>B. Rincian Potongan</span>
+                            <span id="deductionTotalDisplay">- NTD 5.368</span>
+                        </div>
+                        <div class="space-y-1.5 text-xs sm:text-sm" id="deductionsBreakdownList">
+                            <!-- Filled dynamically by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Final Net -->
+                    <div class="bg-teal-50/80 border border-teal-200 p-3.5 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="block text-xs font-bold text-teal-900">Gaji Bersih Diterima (A - B)</span>
+                            <span class="text-[11px] text-teal-700" id="slipNetIdrSub">≈ Rp 17.752.770</span>
+                        </div>
+                        <span class="text-lg font-extrabold text-teal-800" id="slipFinalNet">NTD 35.154</span>
+                    </div>
+
+                    <!-- Save to Monthly History -->
+                    <div class="pt-3 border-t border-slate-100">
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Simpan ke Riwayat Bulanan (Browser)</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="historyMonthLabel" value="November 2026" placeholder="Misal: November 2026"
+                                class="flex-1 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500">
+                            <button type="button" onclick="saveCurrentToHistory()"
+                                class="px-4 py-2 bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition flex items-center gap-1.5 shrink-0">
+                                <i data-lucide="bookmark-plus" class="w-4 h-4"></i>
+                                <span>Simpan</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- BOTTOM SECTION: RIWAYAT SLIP GAJI BULANAN (LOCALSTORAGE) -->
+        <section class="bg-white p-5 sm:p-6 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
+                        <i data-lucide="history" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-base sm:text-lg font-bold text-slate-800">Riwayat Slip Gaji Tersimpan</h2>
+                        <p class="text-xs text-slate-500">Pantau total penghasilan &amp; akumulasi potongan pajak setahun untuk klaim <em>Tax Refund</em> bulan Mei</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="exportBackupJson()" class="text-xs font-bold text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        <span>Backup (JSON)</span>
+                    </button>
+                    <button type="button" onclick="triggerRestoreFile()" class="text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-200 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 cursor-pointer">
+                        <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                        <span>Restore (JSON)</span>
+                    </button>
+                    <input type="file" id="restoreJsonInput" accept=".json,application/json" class="hidden" onchange="handleRestoreFileSelect(event)">
+                    <button type="button" onclick="clearAllHistory()" id="clearHistoryBtn" class="hidden text-xs font-semibold text-rose-600 hover:text-rose-700 px-3 py-1.5 rounded-lg bg-rose-50 hover:bg-rose-100 transition cursor-pointer">
+                        Hapus Semua
+                    </button>
+                </div>
+            </div>
+
+            <!-- Banner Status Backup/Restore -->
+            <div id="backupStatusBanner" class="hidden p-3.5 rounded-xl border text-xs sm:text-sm flex items-start justify-between gap-3">
+                <div class="flex items-start gap-2.5">
+                    <i id="backupStatusIcon" data-lucide="check-circle-2" class="w-4 h-4 shrink-0 mt-0.5"></i>
+                    <div>
+                        <p id="backupStatusTitle" class="font-bold"></p>
+                        <p id="backupStatusDesc" class="text-xs mt-0.5 opacity-90"></p>
+                    </div>
+                </div>
+                <button type="button" onclick="hideBackupBanner()" class="p-1 rounded-lg hover:bg-black/5 shrink-0">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Annual Summary Stats -->
+            <div id="historyStatsBar" class="hidden grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/70">
+                    <span class="text-[11px] font-semibold text-slate-500 uppercase">Total Gaji Kotor Tersimpan</span>
+                    <span id="statTotalGross" class="block text-lg font-extrabold text-slate-800 mt-0.5">NTD 0</span>
+                </div>
+                <div class="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200/70">
+                    <span class="text-[11px] font-semibold text-amber-800 uppercase">Total Pajak Terpotong (Potensi Refund)</span>
+                    <span id="statTotalTax" class="block text-lg font-extrabold text-amber-700 mt-0.5">NTD 0</span>
+                </div>
+                <div class="p-3.5 rounded-xl bg-teal-50/70 border border-teal-200/70">
+                    <span class="text-[11px] font-semibold text-teal-800 uppercase">Rata-Rata Gaji Bersih / Bulan</span>
+                    <span id="statAvgNet" class="block text-lg font-extrabold text-teal-700 mt-0.5">NTD 0</span>
+                </div>
+            </div>
+
+            <!-- History Cards List -->
+            <div id="historyListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                <!-- Rendered via JS -->
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL POPUP UNTUK EDIT TANGGAL DI KALENDER -->
+    <div id="dayModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-5 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h3 class="font-bold text-slate-800 text-base" id="modalDateTitle">Tanggal 15 November 2026</h3>
+                <button type="button" onclick="closeDayModal()" class="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Jenis Hari Kerja</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" id="modalTypeWd" onclick="setModalDayType('wd')"
+                            class="py-2 px-2 rounded-xl border text-xs font-bold text-center transition">
+                            Hari Biasa
+                        </button>
+                        <button type="button" id="modalTypeRd" onclick="setModalDayType('rd')"
+                            class="py-2 px-2 rounded-xl border text-xs font-bold text-center transition">
+                            Sabtu / Istirahat
+                        </button>
+                        <button type="button" id="modalTypeNh" onclick="setModalDayType('nh')"
+                            class="py-2 px-2 rounded-xl border text-xs font-bold text-center transition">
+                            Libur Nasional
+                        </button>
+                    </div>
+                </div>
+
+                <div id="modalHoursSection">
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5">Durasi Jam Lembur</label>
+                    <div class="grid grid-cols-4 gap-1.5" id="modalHourButtons">
+                        <!-- Generated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button type="button" onclick="clearModalDay()" class="flex-1 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">
+                    Hapus Lembur
+                </button>
+                <button type="button" onclick="saveModalDay()" class="flex-1 py-2.5 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold shadow-sm">
+                    Simpan Tanggal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL PANDUAN INSTALASI PWA (ANDROID / IOS / DESKTOP) -->
+    <div id="installGuideModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                        <i data-lucide="download-cloud" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base">Install ke Layar Utama HP</h3>
+                        <p class="text-[11px] text-slate-500">Bisa dibuka langsung &amp; jalan 100% tanpa internet</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeInstallModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div id="installPromptDirectBox" class="hidden p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2.5">
+                <p class="text-xs text-emerald-900 font-medium">Browser Anda mendukung instalasi otomatis satu klik:</p>
+                <button type="button" onclick="confirmNativeInstall()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-sm transition">
+                    Pasang Aplikasi Sekarang
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-600">
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                    <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <span class="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px]">Android</span>
+                        Google Chrome / Edge
+                    </span>
+                    <p class="leading-relaxed">Ketuk ikon <strong>titik tiga (⋮)</strong> di pojok kanan atas browser, lalu pilih <strong>"Tambahkan ke layar utama"</strong> atau <strong>"Install aplikasi"</strong>.</p>
+                </div>
+
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1">
+                    <span class="font-bold text-slate-800 flex items-center gap-1.5">
+                        <span class="px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 text-[10px]">iPhone / iOS</span>
+                        Browser Safari
+                    </span>
+                    <p class="leading-relaxed">Ketuk ikon <strong>Bagikan (Share)</strong> di bilah bawah Safari, geser ke bawah, lalu pilih <strong>"Tambah ke Layar Utama" (Add to Home Screen)</strong>.</p>
+                </div>
+            </div>
+
+            <div class="pt-1 flex justify-end">
+                <button type="button" onclick="closeInstallModal()" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold">
+                    Mengerti
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI RESTORE BACKUP JSON -->
+    <div id="restoreConfirmModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 shadow-2xl border border-slate-200 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-teal-100 text-teal-700 flex items-center justify-center">
+                        <i data-lucide="folder-sync" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-sm sm:text-base">Konfirmasi Restore Data</h3>
+                        <p class="text-[11px] text-slate-500" id="restoreFileMeta">File backup terdeteksi</p>
+                    </div>
+                </div>
+                <button type="button" onclick="closeRestoreModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/80 space-y-1.5 text-xs text-slate-700">
+                <div class="flex justify-between">
+                    <span>Jumlah slip gaji di file backup:</span>
+                    <strong id="restoreSlipCount" class="text-teal-700">0 slip</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span>Catatan kalender lembur:</span>
+                    <strong id="restoreCalCount" class="text-slate-800">0 hari</strong>
+                </div>
+                <div class="flex justify-between">
+                    <span>Tanggal backup dibuat:</span>
+                    <strong id="restoreExportedAt" class="text-slate-600">-</strong>
+                </div>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+                Pilih cara memulihkan data ke perangkat ini:
+            </p>
+
+            <div class="space-y-2.5">
+                <button type="button" onclick="applyRestoreData('merge')"
+                    class="w-full p-3 rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-left transition shadow-sm cursor-pointer">
+                    <span class="block text-xs sm:text-sm font-bold flex items-center gap-1.5">
+                        <i data-lucide="git-merge" class="w-4 h-4"></i>
+                        Gabungkan Data (Merge) — Disarankan
+                    </span>
+                    <span class="block text-[11px] text-teal-100 mt-0.5">
+                        Menambahkan slip bulan baru dari backup tanpa menghapus riwayat yang sudah ada di HP ini.
+                    </span>
+                </button>
+
+                <button type="button" onclick="applyRestoreData('overwrite')"
+                    class="w-full p-3 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-950 text-left transition cursor-pointer">
+                    <span class="block text-xs sm:text-sm font-bold flex items-center gap-1.5 text-amber-900">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        Ganti Semua Data (Overwrite)
+                    </span>
+                    <span class="block text-[11px] text-amber-800 mt-0.5">
+                        Menimpa seluruh riwayat, log kalender, dan pengaturan saat ini dengan isi file backup.
+                    </span>
+                </button>
+            </div>
+
+            <div class="pt-1 flex justify-end">
+                <button type="button" onclick="closeRestoreModal()" class="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-bold">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg text-xs sm:text-sm font-medium flex items-center gap-2 transform translate-y-24 opacity-0 transition-all duration-300 z-50">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+        <span id="toastMsg">Tersalin!</span>
+    </div>
+
+    <script>
+        // --- INISIALISASI PWA (MANIFEST, IKON & SERVICE WORKER INLINE) ---
+        let deferredInstallPrompt = null;
+
+        function createPwaIconDataUrl(size) {
+            const c = document.createElement('canvas');
+            c.width = size;
+            c.height = size;
+            const ctx = c.getContext('2d');
+
+            // Latar belakang gradien emerald-teal dengan sudut membulat
+            const radius = size * 0.22;
+            const grad = ctx.createLinearGradient(0, 0, size, size);
+            grad.addColorStop(0, '#059669');
+            grad.addColorStop(1, '#0f766e');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.roundRect(0, 0, size, size, radius);
+            ctx.fill();
+
+            // Bingkai dalam tipis
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = Math.max(2, size * 0.02);
+            ctx.beginPath();
+            ctx.roundRect(size * 0.06, size * 0.06, size * 0.88, size * 0.88, radius * 0.78);
+            ctx.stroke();
+
+            // Teks Utama "PMI"
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.font = `800 ${Math.round(size * 0.28)}px Inter, sans-serif`;
+            ctx.fillText('PMI', size / 2, size * 0.39);
+
+            // Sub-badge "NTD"
+            ctx.fillStyle = '#a7f3d0';
+            ctx.font = `700 ${Math.round(size * 0.17)}px Inter, sans-serif`;
+            ctx.fillText('NTD', size / 2, size * 0.67);
+
+            return c.toDataURL('image/png');
+        }
+
+        function initPwaSupport() {
+            try {
+                const icon192 = createPwaIconDataUrl(192);
+                const icon512 = createPwaIconDataUrl(512);
+
+                // Suntikkan apple-touch-icon & favicon
+                const appleIcon = document.createElement('link');
+                appleIcon.rel = 'apple-touch-icon';
+                appleIcon.href = icon192;
+                document.head.appendChild(appleIcon);
+
+                const favIcon = document.createElement('link');
+                favIcon.rel = 'icon';
+                favIcon.type = 'image/png';
+                favIcon.href = icon192;
+                document.head.appendChild(favIcon);
+
+                // Buat dan suntikkan Web App Manifest via Blob URL
+                const manifestData = {
+                    name: 'Kalkulator Gaji & Lembur PMI Taiwan',
+                    short_name: 'Gaji PMI TW',
+                    description: 'Simulasi take-home pay, lembur bertingkat, pajak 183 hari, dan riwayat slip gaji PMI Taiwan (Formal & Caregiver).',
+                    start_url: '.',
+                    display: 'standalone',
+                    background_color: '#f8fafc',
+                    theme_color: '#059669',
+                    orientation: 'portrait-primary',
+                    icons: [
+                        { src: icon192, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+                        { src: icon512, sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+                    ]
+                };
+                const manifestBlob = new Blob([JSON.stringify(manifestData)], { type: 'application/manifest+json' });
+                const manifestUrl = URL.createObjectURL(manifestBlob);
+                const manifestLink = document.createElement('link');
+                manifestLink.rel = 'manifest';
+                manifestLink.href = manifestUrl;
+                document.head.appendChild(manifestLink);
+            } catch (err) {
+                console.warn('Manifest injection skipped:', err);
+            }
+
+            // Daftarkan Inline Service Worker untuk dukungan Offline penuh
+            registerInlineServiceWorker();
+            setupNetworkStatusListeners();
+            setupInstallPromptListeners();
+        }
+
+        function registerInlineServiceWorker() {
+            if (!('serviceWorker' in navigator)) return;
+            const isSecureOrLocal = window.location.protocol === 'https:' ||
+                window.location.hostname === 'localhost' ||
+                window.location.hostname === '127.0.0.1';
+            if (!isSecureOrLocal) return;
+
+            const swCode = `
+                const CACHE_NAME = 'gaji-pmi-tw-v1';
+                const CORE_ASSETS = [
+                    './',
+                    'https://cdn.tailwindcss.com',
+                    'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap',
+                    'https://unpkg.com/lucide@latest'
+                ];
+
+                self.addEventListener('install', (event) => {
+                    event.waitUntil(
+                        caches.open(CACHE_NAME).then((cache) => {
+                            return Promise.allSettled(
+                                CORE_ASSETS.map((url) => cache.add(url).catch(() => null))
+                            );
+                        }).then(() => self.skipWaiting())
+                    );
+                });
+
+                self.addEventListener('activate', (event) => {
+                    event.waitUntil(
+                        caches.keys().then((keys) =>
+                            Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+                        ).then(() => self.clients.claim())
+                    );
+                });
+
+                self.addEventListener('fetch', (event) => {
+                    if (event.request.method !== 'GET') return;
+                    event.respondWith(
+                        caches.match(event.request).then((cachedResponse) => {
+                            const networkFetch = fetch(event.request).then((networkResponse) => {
+                                if (networkResponse && (networkResponse.status === 200 || networkResponse.type === 'opaque')) {
+                                    const cloned = networkResponse.clone();
+                                    caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+                                }
+                                return networkResponse;
+                            }).catch(() => cachedResponse);
+
+                            return cachedResponse || networkFetch;
+                        })
+                    );
+                });
+            `;
+
+            try {
+                const swBlob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(swBlob);
+                navigator.serviceWorker.register(swUrl).catch(() => {
+                    // Fallback aman di lingkungan sandbox/iframe
+                });
+            } catch (err) {
+                // Abaikan bila diblokir kebijakan browser
+            }
+        }
+
+        function setupNetworkStatusListeners() {
+            const updateStatus = () => {
+                const badge = document.getElementById('networkStatusBadge');
+                const dot = document.getElementById('networkStatusDot');
+                const text = document.getElementById('networkStatusText');
+                if (!badge || !dot || !text) return;
+
+                if (navigator.onLine) {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/25 text-emerald-100 border border-emerald-400/40';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse';
+                    text.textContent = 'Online';
+                } else {
+                    badge.className = 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/30 text-amber-100 border border-amber-400/50';
+                    dot.className = 'w-1.5 h-1.5 rounded-full bg-amber-300';
+                    text.textContent = 'Mode Offline';
+                    showToast('Anda sedang offline. Kalkulator tetap berjalan normal.');
+                }
+            };
+            window.addEventListener('online', updateStatus);
+            window.addEventListener('offline', updateStatus);
+            updateStatus();
+        }
+
+        function setupInstallPromptListeners() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredInstallPrompt = e;
+                const directBox = document.getElementById('installPromptDirectBox');
+                if (directBox) directBox.classList.remove('hidden');
+            });
+
+            window.addEventListener('appinstalled', () => {
+                deferredInstallPrompt = null;
+                closeInstallModal();
+                const btn = document.getElementById('installPwaBtn');
+                if (btn) btn.classList.add('hidden');
+                showToast('Aplikasi Gaji PMI TW berhasil terpasang di HP!');
+            });
+
+            // Sembunyikan tombol install jika sudah berjalan dalam mode standalone (terinstal)
+            if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+                const btn = document.getElementById('installPwaBtn');
+                if (btn) btn.classList.add('hidden');
+            }
+        }
+
+        function triggerInstallPwa() {
+            if (deferredInstallPrompt) {
+                confirmNativeInstall();
+            } else {
+                const modal = document.getElementById('installGuideModal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        async function confirmNativeInstall() {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            const choice = await deferredInstallPrompt.userChoice;
+            if (choice.outcome === 'accepted') {
+                deferredInstallPrompt = null;
+                closeInstallModal();
+            }
+        }
+
+        function closeInstallModal() {
+            const modal = document.getElementById('installGuideModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // --- STATE APLIKASI ---
+        const state = {
+            sector: 'formal', // 'formal' | 'informal'
+            formalInputMode: 'slider', // 'slider' | 'calendar'
+            baseSalary: 29500,
+            kursIdr: 505,
+
+            // Formal Slider
+            wdDays: 10,
+            wdHours: 3.5,
+            rdDays: 3,
+            rdHours: 8,
+            nhDays: 0,
+
+            // Formal Calendar Logs: key = 'YYYY-M-D', value = { type: 'wd'|'rd'|'nh', hours: number }
+            calendarLogs: {},
+            editingDateKey: null,
+            modalTempType: 'wd',
+            modalTempHours: 2,
+
+            // Informal
+            infSundayDays: 4,
+            infNhDays: 0,
+            infIncludeNhi: true,
+            infIncludeLi: false,
+
+            // Deductions & Tax
+            agencyFee: 1800,
+            isOver183Days: false,
+            dormFee: 2500
+        };
+
+        const STORAGE_KEY = 'pmi_taiwan_payslip_history_v2';
+        let latestCalculation = null;
+        let pendingRestorePayload = null;
+
+        // --- HELPER FORMAT ---
+        function formatNtd(num) {
+            return 'NTD ' + Math.round(num).toLocaleString('id-ID');
+        }
+        function formatIdr(num) {
+            return 'Rp ' + Math.round(num).toLocaleString('id-ID');
+        }
+        function formatDec(num, d = 1) {
+            return num.toLocaleString('id-ID', { minimumFractionDigits: d, maximumFractionDigits: d });
+        }
+
+        // --- SWITCH SEKTOR UTAMA ---
+        function switchSector(sector) {
+            state.sector = sector;
+            const tabF = document.getElementById('tabSectorFormal');
+            const tabI = document.getElementById('tabSectorInformal');
+            const secF = document.getElementById('formalSection');
+            const secI = document.getElementById('informalSection');
+            const preF = document.getElementById('formalPresets');
+            const preI = document.getElementById('informalPresets');
+
+            if (sector === 'formal') {
+                tabF.className = 'py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all bg-teal-700 text-white shadow-sm';
+                tabI.className = 'py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all text-slate-600 hover:bg-slate-100';
+                secF.classList.remove('hidden');
+                secI.classList.add('hidden');
+                preF.classList.remove('hidden');
+                preI.classList.add('hidden');
+                document.getElementById('sectorBadgeResult').textContent = 'Sektor Formal';
+
+                if (state.baseSalary === 20000) {
+                    setBaseSalaryPreset(29500, '2026');
+                }
+                if (state.dormFee === 0) {
+                    state.dormFee = 2500;
+                    document.getElementById('dormFee').value = 2500;
+                    document.getElementById('dormFeeVal').textContent = '2.500';
+                }
+            } else {
+                tabI.className = 'py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all bg-teal-700 text-white shadow-sm';
+                tabF.className = 'py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all text-slate-600 hover:bg-slate-100';
+                secI.classList.remove('hidden');
+                secF.classList.add('hidden');
+                preI.classList.remove('hidden');
+                preF.classList.add('hidden');
+                document.getElementById('sectorBadgeResult').textContent = 'Caregiver / PRT';
+
+                setBaseSalaryPreset(20000, 'inf20');
+                state.dormFee = 0;
+                document.getElementById('dormFee').value = 0;
+                document.getElementById('dormFeeVal').textContent = '0';
+            }
+            calculateAll();
+        }
+
+        // --- PRESET UPAH POKOK ---
+        function setBaseSalaryPreset(amount, presetId) {
+            state.baseSalary = amount;
+            document.getElementById('baseSalary').value = amount;
+
+            // Update styling tombol preset formal
+            const b26 = document.getElementById('btnYear2026');
+            const b27 = document.getElementById('btnYear2027');
+            b26.className = presetId === '2026'
+                ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-600 text-white shadow-sm transition'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+            b27.className = presetId === '2027'
+                ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-600 text-white shadow-sm transition'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+
+            // Update styling tombol preset informal
+            const bi20 = document.getElementById('btnInf20k');
+            const bi295 = document.getElementById('btnInf295k');
+            bi20.className = presetId === 'inf20'
+                ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-600 text-white shadow-sm transition'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+            bi295.className = presetId === 'inf295'
+                ? 'px-3 py-1.5 rounded-lg text-xs font-bold bg-teal-600 text-white shadow-sm transition'
+                : 'px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 transition';
+
+            calculateAll();
+        }
+
+        // --- SUB-TAB FORMAL: SLIDER VS KALENDER ---
+        function switchFormalInputMode(mode) {
+            state.formalInputMode = mode;
+            const btnS = document.getElementById('subTabSlider');
+            const btnC = document.getElementById('subTabCalendar');
+            const panS = document.getElementById('formalSliderPanel');
+            const panC = document.getElementById('formalCalendarPanel');
+
+            if (mode === 'slider') {
+                btnS.className = 'py-2 px-3 rounded-lg text-xs font-bold bg-white text-teal-800 shadow-sm flex items-center justify-center gap-1.5 transition';
+                btnC.className = 'py-2 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition';
+                panS.classList.remove('hidden');
+                panC.classList.add('hidden');
+            } else {
+                btnC.className = 'py-2 px-3 rounded-lg text-xs font-bold bg-white text-teal-800 shadow-sm flex items-center justify-center gap-1.5 transition';
+                btnS.className = 'py-2 px-3 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center justify-center gap-1.5 transition';
+                panC.classList.remove('hidden');
+                panS.classList.add('hidden');
+                if (Object.keys(state.calendarLogs).length === 0) {
+                    seedSampleCalendar();
+                } else {
+                    renderCalendar();
+                }
+            }
+            calculateAll();
+        }
+
+        // --- LOG KALENDER MINI ---
+        function renderCalendar() {
+            const month = Number(document.getElementById('calMonth').value);
+            const year = Number(document.getElementById('calYear').value);
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            document.getElementById('historyMonthLabel').value = `${monthNames[month]} ${year}`;
+
+            // Empty cells before day 1
+            for (let i = 0; i < firstDay; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'h-12 sm:h-14 rounded-xl bg-slate-50/50';
+                grid.appendChild(empty);
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateObj = new Date(year, month, day);
+                const dow = dateObj.getDay(); // 0 = Min, 6 = Sab
+                const key = `${year}-${month}-${day}`;
+                const log = state.calendarLogs[key];
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => openDayModal(year, month, day, dow);
+
+                let baseStyle = 'h-12 sm:h-14 rounded-xl border p-1 flex flex-col items-center justify-between transition text-xs ';
+                let badgeHtml = '<span class="text-[10px] text-slate-300">-</span>';
+
+                if (log) {
+                    if (log.type === 'wd') {
+                        baseStyle += 'bg-teal-50 border-teal-400 text-teal-900 shadow-xs';
+                        badgeHtml = `<span class="px-1.5 py-0.2 rounded bg-teal-600 text-white text-[10px] font-bold">${log.hours}j</span>`;
+                    } else if (log.type === 'rd') {
+                        baseStyle += 'bg-indigo-50 border-indigo-400 text-indigo-900 shadow-xs';
+                        badgeHtml = `<span class="px-1.5 py-0.2 rounded bg-indigo-600 text-white text-[10px] font-bold">S ${log.hours}j</span>`;
+                    } else if (log.type === 'nh') {
+                        baseStyle += 'bg-rose-50 border-rose-400 text-rose-900 shadow-xs';
+                        badgeHtml = `<span class="px-1.5 py-0.2 rounded bg-rose-600 text-white text-[10px] font-bold">Libur</span>`;
+                    }
+                } else {
+                    if (dow === 6) {
+                        baseStyle += 'bg-indigo-50/30 border-slate-200 hover:border-indigo-300 text-indigo-700';
+                    } else if (dow === 0) {
+                        baseStyle += 'bg-rose-50/30 border-slate-200 hover:border-rose-300 text-rose-600';
+                    } else {
+                        baseStyle += 'bg-white border-slate-200 hover:border-teal-400 text-slate-700';
+                    }
+                }
+
+                btn.className = baseStyle;
+                btn.innerHTML = `<span class="font-bold text-[11px] sm:text-xs">${day}</span>${badgeHtml}`;
+                grid.appendChild(btn);
+            }
+        }
+
+        function seedSampleCalendar() {
+            const month = Number(document.getElementById('calMonth').value);
+            const year = Number(document.getElementById('calYear').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            // Bersihkan bulan aktif terlebih dahulu
+            for (let d = 1; d <= daysInMonth; d++) {
+                delete state.calendarLogs[`${year}-${month}-${d}`];
+            }
+
+            let wdCount = 0;
+            let rdCount = 0;
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dow = new Date(year, month, d).getDay();
+                if (dow >= 1 && dow <= 5 && wdCount < 10 && d % 2 === 1) {
+                    state.calendarLogs[`${year}-${month}-${d}`] = { type: 'wd', hours: 3.5 };
+                    wdCount++;
+                } else if (dow === 6 && rdCount < 3) {
+                    state.calendarLogs[`${year}-${month}-${d}`] = { type: 'rd', hours: 8 };
+                    rdCount++;
+                }
+            }
+            renderCalendar();
+            calculateAll();
+            showToast('Contoh jadwal lembur bulan ini dimuat!');
+        }
+
+        function resetCalendarMonth() {
+            const month = Number(document.getElementById('calMonth').value);
+            const year = Number(document.getElementById('calYear').value);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let d = 1; d <= daysInMonth; d++) {
+                delete state.calendarLogs[`${year}-${month}-${d}`];
+            }
+            renderCalendar();
+            calculateAll();
+            showToast('Catatan lembur bulan ini direset.');
+        }
+
+        function openDayModal(year, month, day, dow) {
+            const monthNames = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+            const key = `${year}-${month}-${day}`;
+            state.editingDateKey = key;
+
+            const existing = state.calendarLogs[key];
+            if (existing) {
+                state.modalTempType = existing.type;
+                state.modalTempHours = existing.hours;
+            } else {
+                state.modalTempType = dow === 6 ? 'rd' : 'wd';
+                state.modalTempHours = dow === 6 ? 8 : 3;
+            }
+
+            document.getElementById('modalDateTitle').textContent = `Tanggal ${day} ${monthNames[month]} ${year}`;
+            updateModalUI();
+            const modal = document.getElementById('dayModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDayModal() {
+            const modal = document.getElementById('dayModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function setModalDayType(type) {
+            state.modalTempType = type;
+            if (type === 'wd' && state.modalTempHours > 4) state.modalTempHours = 3;
+            if (type === 'rd' && state.modalTempHours < 4) state.modalTempHours = 8;
+            if (type === 'nh') state.modalTempHours = 8;
+            updateModalUI();
+        }
+
+        function updateModalUI() {
+            const types = ['wd', 'rd', 'nh'];
+            types.forEach(t => {
+                const btn = document.getElementById('modalType' + t.charAt(0).toUpperCase() + t.slice(1));
+                btn.className = state.modalTempType === t
+                    ? 'py-2 px-2 rounded-xl border-2 border-teal-600 bg-teal-50 text-teal-800 text-xs font-bold text-center transition'
+                    : 'py-2 px-2 rounded-xl border border-slate-200 text-slate-600 text-xs font-bold text-center transition';
+            });
+
+            const hoursSec = document.getElementById('modalHoursSection');
+            if (state.modalTempType === 'nh') {
+                hoursSec.classList.add('hidden');
+            } else {
+                hoursSec.classList.remove('hidden');
+                const options = state.modalTempType === 'wd'
+                    ? [1, 1.5, 2, 2.5, 3, 3.5, 4]
+                    : [2, 4, 6, 8, 9, 10, 11, 12];
+                const container = document.getElementById('modalHourButtons');
+                container.innerHTML = '';
+                options.forEach(h => {
+                    const b = document.createElement('button');
+                    b.type = 'button';
+                    b.textContent = h + ' jam';
+                    b.className = state.modalTempHours === h
+                        ? 'py-2 rounded-lg bg-teal-600 text-white text-xs font-bold'
+                        : 'py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold';
+                    b.onclick = () => {
+                        state.modalTempHours = h;
+                        updateModalUI();
+                    };
+                    container.appendChild(b);
+                });
+            }
+        }
+
+        function saveModalDay() {
+            if (state.editingDateKey) {
+                state.calendarLogs[state.editingDateKey] = {
+                    type: state.modalTempType,
+                    hours: state.modalTempHours
+                };
+            }
+            closeDayModal();
+            renderCalendar();
+            calculateAll();
+        }
+
+        function clearModalDay() {
+            if (state.editingDateKey) {
+                delete state.calendarLogs[state.editingDateKey];
+            }
+            closeDayModal();
+            renderCalendar();
+            calculateAll();
+        }
+
+        // --- PILIHAN AGENSI & PAJAK ---
+        function selectAgency(btn, fee) {
+            state.agencyFee = fee;
+            document.querySelectorAll('.agency-btn').forEach(b => {
+                b.className = 'agency-btn p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition';
+                b.querySelector('span:nth-child(2)').className = 'block text-sm font-extrabold text-slate-700';
+            });
+            btn.className = 'agency-btn p-2.5 rounded-xl border-2 border-teal-600 bg-teal-50/70 text-left transition';
+            btn.querySelector('span:nth-child(2)').className = 'block text-sm font-extrabold text-teal-700';
+            calculateAll();
+        }
+
+        function selectTaxStatus(isOver183) {
+            state.isOver183Days = isOver183;
+            const btnUnder = document.getElementById('taxUnder183');
+            const btnOver = document.getElementById('taxOver183');
+            if (!isOver183) {
+                btnUnder.className = 'p-3 rounded-xl border-2 border-teal-600 bg-teal-50/70 text-left transition flex items-start gap-2.5';
+                btnOver.className = 'p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition flex items-start gap-2.5';
+            } else {
+                btnOver.className = 'p-3 rounded-xl border-2 border-emerald-600 bg-emerald-50/70 text-left transition flex items-start gap-2.5';
+                btnUnder.className = 'p-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition flex items-start gap-2.5';
+            }
+            calculateAll();
+        }
+
+        // --- KALKULASI UTAMA ---
+        function calculateAll() {
+            const base = Math.max(0, Number(state.baseSalary) || 0);
+            const hourlyRate = base / 240;
+            const dailyRate = base / 30;
+            const taxThreshold = base * 1.5;
+
+            document.getElementById('hourlyRateDisplay').textContent = 'NTD ' + formatDec(hourlyRate, 2);
+            document.getElementById('taxThresholdDisplay').textContent = formatNtd(taxThreshold);
+
+            // Tunjangan & Bonus
+            const mealAllow = Math.max(0, Number(document.getElementById('mealAllowance').value) || 0);
+            const shiftAllow = Math.max(0, Number(document.getElementById('shiftAllowance').value) || 0);
+            const attendBonus = Math.max(0, Number(document.getElementById('attendanceBonus').value) || 0);
+            const otherBonus = Math.max(0, Number(document.getElementById('otherBonus').value) || 0);
+            const totalAllowances = mealAllow + shiftAllow + attendBonus + otherBonus;
+            document.getElementById('allowanceTotalBadge').textContent = '+ ' + formatNtd(totalAllowances);
+
+            let totalOvertimePay = 0;
+            let totalQuotaHours = 0;
+            let earningsItems = [
+                { label: 'Upah Pokok Bulanan', amount: base }
+            ];
+
+            if (state.sector === 'formal') {
+                let h134 = 0, h167 = 0, h267 = 0, nhCount = 0;
+
+                if (state.formalInputMode === 'slider') {
+                    const wd134 = state.wdDays * Math.min(state.wdHours, 2);
+                    const wd167 = state.wdDays * Math.max(0, state.wdHours - 2);
+                    const wdPay = (wd134 * hourlyRate * (4 / 3)) + (wd167 * hourlyRate * (5 / 3));
+
+                    const rd134 = state.rdDays * Math.min(state.rdHours, 2);
+                    const rd167 = state.rdDays * Math.min(Math.max(0, state.rdHours - 2), 6);
+                    const rd267 = state.rdDays * Math.max(0, state.rdHours - 8);
+                    const rdPay = (rd134 * hourlyRate * (4 / 3)) + (rd167 * hourlyRate * (5 / 3)) + (rd267 * hourlyRate * (8 / 3));
+
+                    const nhPay = state.nhDays * dailyRate;
+
+                    document.getElementById('wdSubtotalBadge').textContent = '+ ' + formatNtd(wdPay);
+                    document.getElementById('rdSubtotalBadge').textContent = '+ ' + formatNtd(rdPay);
+                    document.getElementById('nhSubtotalBadge').textContent = '+ ' + formatNtd(nhPay);
+
+                    h134 = wd134 + rd134;
+                    h167 = wd167 + rd167;
+                    h267 = rd267;
+                    nhCount = state.nhDays;
+                    totalQuotaHours = (state.wdDays * state.wdHours) + (state.rdDays * state.rdHours);
+                } else {
+                    const month = Number(document.getElementById('calMonth').value);
+                    const year = Number(document.getElementById('calYear').value);
+                    const prefix = `${year}-${month}-`;
+
+                    Object.entries(state.calendarLogs).forEach(([key, log]) => {
+                        if (!key.startsWith(prefix)) return;
+                        if (log.type === 'wd') {
+                            h134 += Math.min(log.hours, 2);
+                            h167 += Math.max(0, log.hours - 2);
+                            totalQuotaHours += log.hours;
+                        } else if (log.type === 'rd') {
+                            h134 += Math.min(log.hours, 2);
+                            h167 += Math.min(Math.max(0, log.hours - 2), 6);
+                            h267 += Math.max(0, log.hours - 8);
+                            totalQuotaHours += log.hours;
+                        } else if (log.type === 'nh') {
+                            nhCount += 1;
+                        }
+                    });
+                }
+
+                const pay134 = h134 * hourlyRate * (4 / 3);
+                const pay167 = h167 * hourlyRate * (5 / 3);
+                const pay267 = h267 * hourlyRate * (8 / 3);
+                const payNh = nhCount * dailyRate;
+                totalOvertimePay = pay134 + pay167 + pay267 + payNh;
+
+                if (h134 > 0) earningsItems.push({ label: `Lembur Tarif 1,34× (${formatDec(h134)} jam)`, amount: pay134 });
+                if (h167 > 0) earningsItems.push({ label: `Lembur Tarif 1,67× (${formatDec(h167)} jam)`, amount: pay167 });
+                if (h267 > 0) earningsItems.push({ label: `Lembur Tarif 2,67× (${formatDec(h267)} jam)`, amount: pay267 });
+                if (nhCount > 0) earningsItems.push({ label: `Lembur Libur Nasional (${nhCount} hari)`, amount: payNh });
+
+                // Update Progress Bar Kuota 46 Jam
+                const qBadge = document.getElementById('quotaTextBadge');
+                const qBar = document.getElementById('quotaProgressBar');
+                const qHelp = document.getElementById('quotaHelperText');
+                const pct = Math.min(100, (totalQuotaHours / 46) * 100);
+                qBar.style.width = pct + '%';
+                qBadge.textContent = `${formatDec(totalQuotaHours)} / 46 Jam`;
+
+                if (totalQuotaHours > 46) {
+                    qBadge.className = 'font-extrabold text-xs px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800';
+                    qBar.className = 'h-full bg-rose-500 transition-all duration-300 rounded-full';
+                    qHelp.textContent = '⚠️ Melebihi batas standar Pasal 32 (46 jam/bln). Batas fleksibel maksimal 54 jam/bln.';
+                } else if (totalQuotaHours >= 40) {
+                    qBadge.className = 'font-extrabold text-xs px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800';
+                    qBar.className = 'h-full bg-amber-500 transition-all duration-300 rounded-full';
+                    qHelp.textContent = '⚡ Mendekati batas standar legal 46 jam/bulan.';
+                } else {
+                    qBadge.className = 'font-extrabold text-xs px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800';
+                    qBar.className = 'h-full bg-emerald-500 transition-all duration-300 rounded-full';
+                    qHelp.textContent = '✓ Aman di bawah batas standar legal 46 jam/bulan.';
+                }
+            } else {
+                // Sektor Informal (Caregiver)
+                const sunPay = state.infSundayDays * dailyRate;
+                const nhPay = state.infNhDays * dailyRate;
+                totalOvertimePay = sunPay + nhPay;
+
+                document.getElementById('infDailyRateDisplay').textContent = formatNtd(dailyRate);
+                document.getElementById('infSundayBadge').textContent = '+ ' + formatNtd(sunPay);
+                document.getElementById('infNhBadge').textContent = '+ ' + formatNtd(nhPay);
+
+                if (state.infSundayDays > 0) earningsItems.push({ label: `Lembur Hari Minggu (${state.infSundayDays} hari)`, amount: sunPay });
+                if (state.infNhDays > 0) earningsItems.push({ label: `Libur Nasional Bekerja (${state.infNhDays} hari)`, amount: nhPay });
+            }
+
+            if (totalAllowances > 0) {
+                earningsItems.push({ label: 'Total Tunjangan & Bonus', amount: totalAllowances });
+            }
+
+            const grossPay = base + totalOvertimePay + totalAllowances;
+
+            // Potongan Asuransi
+            // Kelas upah dasar minimum Taiwan 29.500 untuk NHI jika pokok < 29.500 (seperti caregiver 20.000)
+            const insBase = Math.max(base, 29500);
+            let nhiFee = Math.round(insBase * 0.0517 * 0.30);
+            let liFee = Math.round(insBase * 0.115 * 0.20);
+
+            if (state.sector === 'informal') {
+                if (!document.getElementById('infIncludeNhi').checked) nhiFee = 0;
+                if (!document.getElementById('infIncludeLi').checked) liFee = 0;
+            }
+
+            // Potongan Pajak 183 Hari
+            let taxRate = 0;
+            let taxAmount = 0;
+            if (!state.isOver183Days) {
+                taxRate = grossPay > taxThreshold ? 0.18 : 0.06;
+                taxAmount = Math.round(grossPay * taxRate);
+            }
+
+            const otherDed = Math.max(0, Number(document.getElementById('otherDeduction').value) || 0);
+            const totalDeductions = nhiFee + liFee + state.agencyFee + taxAmount + state.dormFee + otherDed;
+            const netPay = Math.max(0, grossPay - totalDeductions);
+            const netPayIdr = netPay * state.kursIdr;
+
+            // Simpan snapshot untuk fitur Simpan Riwayat & Ekspor
+            latestCalculation = {
+                sector: state.sector === 'formal' ? 'Formal' : 'Caregiver',
+                base,
+                totalOvertimePay,
+                totalAllowances,
+                grossPay,
+                nhiFee,
+                liFee,
+                agencyFee: state.agencyFee,
+                taxRate,
+                taxAmount,
+                dormFee: state.dormFee,
+                otherDed,
+                totalDeductions,
+                netPay,
+                netPayIdr,
+                earningsItems
+            };
+
+            // Update Kartu Utama
+            document.getElementById('netPayNtd').textContent = formatNtd(netPay);
+            document.getElementById('netPayIdr').textContent = formatIdr(netPayIdr);
+            document.getElementById('grossPayBarLabel').textContent = formatNtd(grossPay);
+            const netPct = grossPay > 0 ? Math.min(100, (netPay / grossPay) * 100) : 0;
+            document.getElementById('netPercentLabel').textContent = formatDec(netPct) + '% Bersih';
+
+            // Update Composition Bar
+            if (grossPay > 0) {
+                const dedRatio = Math.min(100, (totalDeductions / grossPay) * 100);
+                const rem = 100 - dedRatio;
+                document.getElementById('barBase').style.width = ((base / grossPay) * rem) + '%';
+                document.getElementById('barOt').style.width = ((totalOvertimePay / grossPay) * rem) + '%';
+                document.getElementById('barBonus').style.width = ((totalAllowances / grossPay) * rem) + '%';
+                document.getElementById('barDeduction').style.width = dedRatio + '%';
+            }
+
+            // Update Banner Peringatan Pajak
+            const taxBox = document.getElementById('taxAlertBox');
+            const taxTitle = document.getElementById('taxAlertTitle');
+            const taxDesc = document.getElementById('taxAlertDesc');
+            const diff = taxThreshold - grossPay;
+
+            if (!state.isOver183Days) {
+                if (grossPay > taxThreshold) {
+                    taxBox.className = 'p-4 rounded-2xl border bg-rose-50 border-rose-300 text-rose-900 transition-all';
+                    taxTitle.textContent = `⚠️ KENA PAJAK 18% (Melewati Batas ${formatNtd(taxThreshold)})`;
+                    taxDesc.innerHTML = `Gaji kotor Anda (<strong>${formatNtd(grossPay)}</strong>) melewati ambang 1,5× upah pokok sebesar <strong>${formatNtd(Math.abs(diff))}</strong>. Pajak langsung melonjak menjadi <strong>18% (${formatNtd(taxAmount)})</strong>.`;
+                } else if (diff <= 2500) {
+                    taxBox.className = 'p-4 rounded-2xl border bg-amber-50 border-amber-300 text-amber-900 transition-all';
+                    taxTitle.textContent = '⚡ Hati-hati! Mendekati Batas Pajak 18%';
+                    taxDesc.innerHTML = `Pajak saat ini <strong>6% (${formatNtd(taxAmount)})</strong>. Sisa batas aman sebelum pajak melonjak ke 18% tinggal <strong>${formatNtd(diff)}</strong>.`;
+                } else {
+                    taxBox.className = 'p-4 rounded-2xl border bg-teal-50/70 border-teal-200 text-teal-900 transition-all';
+                    taxTitle.textContent = '✓ Tarif Pajak Aman di 6%';
+                    taxDesc.innerHTML = `Masa tinggal &lt; 183 hari dengan gaji kotor di bawah ${formatNtd(taxThreshold)}, pajak dikenakan tarif standar <strong>6% (${formatNtd(taxAmount)})</strong>.`;
+                }
+            } else {
+                taxBox.className = 'p-4 rounded-2xl border bg-emerald-50 border-emerald-200 text-emerald-900 transition-all';
+                taxTitle.textContent = '✓ Bebas Potongan Pajak Bulanan (≥ 183 Hari)';
+                taxDesc.innerHTML = `Berstatus Wajib Pajak Dalam Negeri (potongan pajak <strong>NTD 0</strong> selama penghasilan tahunan di bawah PTKP ~NTD 464.000).`;
+            }
+
+            // Render Rincian Slip Gaji
+            document.getElementById('grossTotalDisplay').textContent = formatNtd(grossPay);
+            const earnList = document.getElementById('earningsBreakdownList');
+            earnList.innerHTML = earningsItems.map(item => `
+                <div class="flex justify-between text-slate-600">
+                    <span>${item.label}</span>
+                    <span class="font-semibold text-slate-800">${formatNtd(item.amount)}</span>
+                </div>
+            `).join('');
+
+            const dedItems = [
+                { label: 'Asuransi Kesehatan (NHI)', amount: nhiFee },
+                { label: 'Asuransi Tenaga Kerja (LI)', amount: liFee },
+                { label: 'Biaya Servis Agensi', amount: state.agencyFee },
+                { label: state.isOver183Days ? 'Pajak Penghasilan (≥183 hr)' : `Pajak Penghasilan (${Math.round(taxRate * 100)}%)`, amount: taxAmount, highlight: taxRate === 0.18 },
+                { label: 'Potongan Mes & Makan', amount: state.dormFee }
+            ];
+            if (otherDed > 0) dedItems.push({ label: 'Potongan Lainnya', amount: otherDed });
+
+            document.getElementById('deductionTotalDisplay').textContent = '- ' + formatNtd(totalDeductions);
+            const dedList = document.getElementById('deductionsBreakdownList');
+            dedList.innerHTML = dedItems.map(item => `
+                <div class="flex justify-between text-slate-600">
+                    <span>${item.label}</span>
+                    <span class="${item.highlight ? 'font-bold text-rose-600' : 'font-medium text-slate-800'}">- ${formatNtd(item.amount)}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('slipFinalNet').textContent = formatNtd(netPay);
+            document.getElementById('slipNetIdrSub').textContent = '≈ ' + formatIdr(netPayIdr);
+        }
+
+        // --- RIWAYAT SLIP GAJI (LOCALSTORAGE) ---
+        function getHistory() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveCurrentToHistory() {
+            if (!latestCalculation) return;
+            const label = document.getElementById('historyMonthLabel').value.trim() || 'Bulan Tanpa Nama';
+            const list = getHistory();
+            const record = {
+                id: Date.now(),
+                monthLabel: label,
+                savedAt: new Date().toLocaleDateString('id-ID'),
+                ...latestCalculation
+            };
+            list.unshift(record);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            renderHistory();
+            showToast(`Slip gaji "${label}" berhasil disimpan!`);
+        }
+
+        function deleteHistoryItem(id) {
+            const list = getHistory().filter(item => item.id !== id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            renderHistory();
+            showToast('Riwayat slip dihapus.');
+        }
+
+        function clearAllHistory() {
+            localStorage.removeItem(STORAGE_KEY);
+            renderHistory();
+            showToast('Semua riwayat slip telah dibersihkan.');
+        }
+
+        // --- BACKUP & RESTORE (JSON) ---
+        function showBackupBanner(type, title, desc) {
+            const banner = document.getElementById('backupStatusBanner');
+            const icon = document.getElementById('backupStatusIcon');
+            const titleEl = document.getElementById('backupStatusTitle');
+            const descEl = document.getElementById('backupStatusDesc');
+
+            titleEl.textContent = title;
+            descEl.textContent = desc;
+
+            if (type === 'success') {
+                banner.className = 'p-3.5 rounded-xl border bg-emerald-50 border-emerald-200 text-emerald-900 text-xs sm:text-sm flex items-start justify-between gap-3';
+                icon.setAttribute('data-lucide', 'check-circle-2');
+            } else {
+                banner.className = 'p-3.5 rounded-xl border bg-rose-50 border-rose-200 text-rose-900 text-xs sm:text-sm flex items-start justify-between gap-3';
+                icon.setAttribute('data-lucide', 'alert-circle');
+            }
+
+            banner.classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function hideBackupBanner() {
+            document.getElementById('backupStatusBanner').classList.add('hidden');
+        }
+
+        function exportBackupJson() {
+            try {
+                const historyList = getHistory();
+                const now = new Date();
+                const yyyy = now.getFullYear();
+                const mm = String(now.getMonth() + 1).padStart(2, '0');
+                const dd = String(now.getDate()).padStart(2, '0');
+                const fileName = `backup_gaji_pmi_taiwan_${yyyy}-${mm}-${dd}.json`;
+
+                const backupPayload = {
+                    app: 'Kalkulator Gaji & Lembur PMI Taiwan',
+                    schemaVersion: 2,
+                    exportedAt: now.toISOString(),
+                    exportedAtReadable: now.toLocaleString('id-ID'),
+                    history: historyList,
+                    settings: {
+                        sector: state.sector,
+                        formalInputMode: state.formalInputMode,
+                        baseSalary: state.baseSalary,
+                        kursIdr: state.kursIdr,
+                        wdDays: state.wdDays,
+                        wdHours: state.wdHours,
+                        rdDays: state.rdDays,
+                        rdHours: state.rdHours,
+                        nhDays: state.nhDays,
+                        infSundayDays: state.infSundayDays,
+                        infNhDays: state.infNhDays,
+                        infIncludeNhi: document.getElementById('infIncludeNhi').checked,
+                        infIncludeLi: document.getElementById('infIncludeLi').checked,
+                        agencyFee: state.agencyFee,
+                        isOver183Days: state.isOver183Days,
+                        dormFee: state.dormFee,
+                        mealAllowance: Number(document.getElementById('mealAllowance').value) || 0,
+                        shiftAllowance: Number(document.getElementById('shiftAllowance').value) || 0,
+                        attendanceBonus: Number(document.getElementById('attendanceBonus').value) || 0,
+                        otherBonus: Number(document.getElementById('otherBonus').value) || 0,
+                        otherDeduction: Number(document.getElementById('otherDeduction').value) || 0
+                    },
+                    calendarLogs: state.calendarLogs
+                };
+
+                const jsonStr = JSON.stringify(backupPayload, null, 2);
+                const blob = new Blob([jsonStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+                showBackupBanner(
+                    'success',
+                    `Backup berhasil diunduh (${fileName})`,
+                    `Mencakup ${historyList.length} riwayat slip gaji, ${Object.keys(state.calendarLogs).length} catatan kalender lembur, dan pengaturan aktif.`
+                );
+                showToast('File backup JSON berhasil diunduh!');
+            } catch (err) {
+                showBackupBanner('error', 'Gagal membuat file backup', 'Terjadi kesalahan saat mengekspor data dari browser.');
+                showToast('Gagal mengekspor backup.');
+            }
+        }
+
+        function triggerRestoreFile() {
+            const input = document.getElementById('restoreJsonInput');
+            input.value = '';
+            input.click();
+        }
+
+        function handleRestoreFileSelect(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+
+                    // Validasi struktur dasar file backup
+                    if (!parsed || typeof parsed !== 'object') {
+                        throw new Error('Format JSON tidak valid.');
+                    }
+
+                    const hasValidHistory = Array.isArray(parsed.history);
+                    const hasValidCalendar = parsed.calendarLogs && typeof parsed.calendarLogs === 'object';
+                    const hasValidSettings = parsed.settings && typeof parsed.settings === 'object';
+
+                    if (!hasValidHistory && !hasValidCalendar && !hasValidSettings) {
+                        throw new Error('File JSON tidak berisi struktur data Kalkulator Gaji PMI Taiwan.');
+                    }
+
+                    const sanitizedHistory = hasValidHistory
+                        ? parsed.history.filter(item =>
+                            item &&
+                            typeof item === 'object' &&
+                            typeof item.monthLabel === 'string' &&
+                            typeof item.netPay === 'number' &&
+                            typeof item.grossPay === 'number'
+                        )
+                        : [];
+
+                    const sanitizedCalendar = {};
+                    if (hasValidCalendar) {
+                        Object.entries(parsed.calendarLogs).forEach(([k, v]) => {
+                            if (v && ['wd', 'rd', 'nh'].includes(v.type) && typeof v.hours === 'number') {
+                                sanitizedCalendar[k] = { type: v.type, hours: v.hours };
+                            }
+                        });
+                    }
+
+                    pendingRestorePayload = {
+                        fileName: file.name,
+                        exportedAtReadable: parsed.exportedAtReadable || parsed.exportedAt || 'Tidak tercatat',
+                        history: sanitizedHistory,
+                        calendarLogs: sanitizedCalendar,
+                        settings: hasValidSettings ? parsed.settings : null
+                    };
+
+                    // Tampilkan modal konfirmasi Merge vs Overwrite
+                    document.getElementById('restoreFileMeta').textContent = file.name;
+                    document.getElementById('restoreSlipCount').textContent = `${sanitizedHistory.length} slip gaji`;
+                    document.getElementById('restoreCalCount').textContent = `${Object.keys(sanitizedCalendar).length} hari`;
+                    document.getElementById('restoreExportedAt').textContent = pendingRestorePayload.exportedAtReadable;
+
+                    const modal = document.getElementById('restoreConfirmModal');
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    if (window.lucide) lucide.createIcons();
+                } catch (err) {
+                    pendingRestorePayload = null;
+                    showBackupBanner(
+                        'error',
+                        'Restore gagal: File tidak valid',
+                        err.message || 'Pastikan Anda memilih file backup .json yang dihasilkan oleh aplikasi ini.'
+                    );
+                    showToast('File backup tidak valid!');
+                }
+            };
+            reader.onerror = () => {
+                showBackupBanner('error', 'Gagal membaca file', 'Browser tidak dapat membuka file yang dipilih.');
+            };
+            reader.readAsText(file);
+        }
+
+        function closeRestoreModal() {
+            const modal = document.getElementById('restoreConfirmModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function applyRestoredSettings(s) {
+            if (!s) return;
+            if (s.sector === 'formal' || s.sector === 'informal') {
+                switchSector(s.sector);
+            }
+            if (typeof s.baseSalary === 'number' && s.baseSalary > 0) {
+                state.baseSalary = s.baseSalary;
+                document.getElementById('baseSalary').value = s.baseSalary;
+            }
+            if (typeof s.kursIdr === 'number' && s.kursIdr > 0) {
+                state.kursIdr = s.kursIdr;
+                document.getElementById('kursIdr').value = s.kursIdr;
+            }
+            if (typeof s.wdDays === 'number') {
+                state.wdDays = s.wdDays;
+                document.getElementById('wdDays').value = s.wdDays;
+                document.getElementById('wdDaysVal').textContent = s.wdDays;
+            }
+            if (typeof s.wdHours === 'number') {
+                state.wdHours = s.wdHours;
+                document.getElementById('wdHours').value = s.wdHours;
+                document.getElementById('wdHoursVal').textContent = s.wdHours;
+            }
+            if (typeof s.rdDays === 'number') {
+                state.rdDays = s.rdDays;
+                document.getElementById('rdDays').value = s.rdDays;
+                document.getElementById('rdDaysVal').textContent = s.rdDays;
+            }
+            if (typeof s.rdHours === 'number') {
+                state.rdHours = s.rdHours;
+                document.getElementById('rdHours').value = s.rdHours;
+                document.getElementById('rdHoursVal').textContent = s.rdHours;
+            }
+            if (typeof s.nhDays === 'number') {
+                state.nhDays = s.nhDays;
+                document.getElementById('nhDays').value = s.nhDays;
+                document.getElementById('nhDaysVal').textContent = s.nhDays;
+            }
+            if (typeof s.infSundayDays === 'number') {
+                state.infSundayDays = s.infSundayDays;
+                document.getElementById('infSundayDays').value = s.infSundayDays;
+                document.getElementById('infSundayDaysVal').textContent = s.infSundayDays;
+            }
+            if (typeof s.infNhDays === 'number') {
+                state.infNhDays = s.infNhDays;
+                document.getElementById('infNhDays').value = s.infNhDays;
+                document.getElementById('infNhDaysVal').textContent = s.infNhDays;
+            }
+            if (typeof s.infIncludeNhi === 'boolean') {
+                document.getElementById('infIncludeNhi').checked = s.infIncludeNhi;
+            }
+            if (typeof s.infIncludeLi === 'boolean') {
+                document.getElementById('infIncludeLi').checked = s.infIncludeLi;
+            }
+            if (typeof s.agencyFee === 'number') {
+                state.agencyFee = s.agencyFee;
+                document.querySelectorAll('.agency-btn').forEach(btn => {
+                    const txt = btn.textContent || '';
+                    const match = (s.agencyFee === 0 && txt.includes('NTD 0')) ||
+                                  (s.agencyFee > 0 && txt.includes(s.agencyFee.toLocaleString('id-ID')));
+                    if (match) {
+                        btn.className = 'agency-btn p-2.5 rounded-xl border-2 border-teal-600 bg-teal-50/70 text-left transition';
+                        btn.querySelector('span:nth-child(2)').className = 'block text-sm font-extrabold text-teal-700';
+                    } else {
+                        btn.className = 'agency-btn p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-left transition';
+                        btn.querySelector('span:nth-child(2)').className = 'block text-sm font-extrabold text-slate-700';
+                    }
+                });
+            }
+            if (typeof s.isOver183Days === 'boolean') {
+                selectTaxStatus(s.isOver183Days);
+            }
+            if (typeof s.dormFee === 'number') {
+                state.dormFee = s.dormFee;
+                document.getElementById('dormFee').value = s.dormFee;
+                document.getElementById('dormFeeVal').textContent = s.dormFee.toLocaleString('id-ID');
+            }
+            if (typeof s.mealAllowance === 'number') document.getElementById('mealAllowance').value = s.mealAllowance;
+            if (typeof s.shiftAllowance === 'number') document.getElementById('shiftAllowance').value = s.shiftAllowance;
+            if (typeof s.attendanceBonus === 'number') document.getElementById('attendanceBonus').value = s.attendanceBonus;
+            if (typeof s.otherBonus === 'number') document.getElementById('otherBonus').value = s.otherBonus;
+            if (typeof s.otherDeduction === 'number') document.getElementById('otherDeduction').value = s.otherDeduction;
+
+            if (s.formalInputMode === 'slider' || s.formalInputMode === 'calendar') {
+                switchFormalInputMode(s.formalInputMode);
+            }
+        }
+
+        function applyRestoreData(mode) {
+            if (!pendingRestorePayload) return;
+            const payload = pendingRestorePayload;
+            closeRestoreModal();
+
+            if (mode === 'overwrite') {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(payload.history));
+                state.calendarLogs = { ...payload.calendarLogs };
+                applyRestoredSettings(payload.settings);
+                renderCalendar();
+                renderHistory();
+                calculateAll();
+
+                showBackupBanner(
+                    'success',
+                    'Data berhasil dipulihkan (Overwrite)',
+                    `Seluruh riwayat (${payload.history.length} slip), log kalender, dan pengaturan telah diganti dari file "${payload.fileName}".`
+                );
+                showToast('Restore (Overwrite) berhasil!');
+            } else {
+                // Mode Merge: gabungkan berdasarkan monthLabel (case-insensitive) tanpa duplikat
+                const existing = getHistory();
+                const existingLabels = new Set(existing.map(item => item.monthLabel.trim().toLowerCase()));
+                let addedCount = 0;
+
+                payload.history.forEach(item => {
+                    const normalizedLabel = item.monthLabel.trim().toLowerCase();
+                    if (!existingLabels.has(normalizedLabel)) {
+                        existing.push({
+                            ...item,
+                            id: item.id || (Date.now() + addedCount)
+                        });
+                        existingLabels.add(normalizedLabel);
+                        addedCount++;
+                    }
+                });
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+                state.calendarLogs = { ...state.calendarLogs, ...payload.calendarLogs };
+                renderCalendar();
+                renderHistory();
+                calculateAll();
+
+                const skippedCount = payload.history.length - addedCount;
+                showBackupBanner(
+                    'success',
+                    `Penggabungan data selesai (+${addedCount} slip baru)`,
+                    `${addedCount} slip bulan baru ditambahkan ke riwayat${skippedCount > 0 ? ` (${skippedCount} bulan yang sudah ada dilewati agar tidak duplikat)` : ''}.`
+                );
+                showToast(`Restore (Merge) berhasil: +${addedCount} slip!`);
+            }
+
+            pendingRestorePayload = null;
+        }
+
+        function renderHistory() {
+            const list = getHistory();
+            const container = document.getElementById('historyListContainer');
+            const statsBar = document.getElementById('historyStatsBar');
+            const clearBtn = document.getElementById('clearHistoryBtn');
+
+            if (list.length === 0) {
+                statsBar.classList.add('hidden');
+                clearBtn.classList.add('hidden');
+                container.innerHTML = `
+                    <div class="col-span-full text-center py-8 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200 text-slate-500 text-xs sm:text-sm">
+                        Belum ada slip gaji yang tersimpan. Klik tombol <strong>"Simpan"</strong> pada rincian slip gaji di atas untuk mencatat riwayat bulanan Anda.
+                    </div>
+                `;
+                return;
+            }
+
+            statsBar.classList.remove('hidden');
+            clearBtn.classList.remove('hidden');
+
+            const sumGross = list.reduce((acc, i) => acc + i.grossPay, 0);
+            const sumTax = list.reduce((acc, i) => acc + i.taxAmount, 0);
+            const avgNet = list.reduce((acc, i) => acc + i.netPay, 0) / list.length;
+
+            document.getElementById('statTotalGross').textContent = formatNtd(sumGross);
+            document.getElementById('statTotalTax').textContent = formatNtd(sumTax);
+            document.getElementById('statAvgNet').textContent = formatNtd(avgNet);
+
+            container.innerHTML = list.map(item => `
+                <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col justify-between gap-3 hover:border-teal-300 transition">
+                    <div>
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="font-bold text-slate-800 text-sm">${item.monthLabel}</span>
+                            <span class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100 text-teal-800">${item.sector}</span>
+                        </div>
+                        <span class="text-[11px] text-slate-400">Disimpan: ${item.savedAt}</span>
+                        
+                        <div class="mt-3 space-y-1 text-xs">
+                            <div class="flex justify-between text-slate-600">
+                                <span>Gaji Kotor:</span>
+                                <span class="font-semibold text-slate-800">${formatNtd(item.grossPay)}</span>
+                            </div>
+                            <div class="flex justify-between text-slate-600">
+                                <span>Potongan Pajak:</span>
+                                <span class="font-semibold text-amber-700">- ${formatNtd(item.taxAmount)}</span>
+                            </div>
+                            <div class="flex justify-between pt-1.5 border-t border-slate-200 font-bold text-teal-800 text-sm">
+                                <span>Gaji Bersih:</span>
+                                <span>${formatNtd(item.netPay)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        <button type="button" onclick="deleteHistoryItem(${item.id})" class="text-[11px] font-semibold text-rose-600 hover:underline">
+                            Hapus
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // --- EKSPOR WHATSAPP & UNDUH GAMBAR PNG ---
+        function copySummary() {
+            if (!latestCalculation) return;
+            const c = latestCalculation;
+            const label = document.getElementById('historyMonthLabel').value.trim() || 'Bulan Ini';
+
+            const lines = [
+                `📋 *Rincian Gaji PMI Taiwan (${label})*`,
+                `Sektor: ${c.sector}`,
+                `• Gaji Pokok: ${formatNtd(c.base)}`,
+                `• Total Lembur: + ${formatNtd(c.totalOvertimePay)}`,
+                c.totalAllowances > 0 ? `• Tunjangan & Bonus: + ${formatNtd(c.totalAllowances)}` : null,
+                `• Total Gaji Kotor: *${formatNtd(c.grossPay)}*`,
+                `• Total Potongan: - ${formatNtd(c.totalDeductions)} (Pajak: ${formatNtd(c.taxAmount)})`,
+                `✅ *Gaji Bersih: ${formatNtd(c.netPay)} (≈ ${formatIdr(c.netPayIdr)})*`
+            ].filter(Boolean).join('\n');
+
+            const ta = document.createElement('textarea');
+            ta.value = lines;
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('Tersalin! Siap ditempel ke WhatsApp.');
+            } catch (e) {
+                showToast('Gagal menyalin teks.');
+            }
+            document.body.removeChild(ta);
+        }
+
+        function downloadPayslipPng() {
+            if (!latestCalculation) return;
+            const c = latestCalculation;
+            const label = document.getElementById('historyMonthLabel').value.trim() || 'Bulan Ini';
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 720;
+            canvas.height = 820;
+            const ctx = canvas.getContext('2d');
+
+            // Background
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Header Banner
+            const grad = ctx.createLinearGradient(0, 0, 720, 150);
+            grad.addColorStop(0, '#115e59');
+            grad.addColorStop(1, '#065f46');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 720, 150);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 28px Inter, sans-serif';
+            ctx.fillText('RINGKASAN SLIP GAJI PMI TAIWAN', 40, 62);
+            ctx.font = '18px Inter, sans-serif';
+            ctx.fillStyle = '#ccfbf1';
+            ctx.fillText(`Periode: ${label}  •  Sektor: ${c.sector}`, 40, 102);
+
+            // Net Pay Highlight Box
+            ctx.fillStyle = '#0f172a';
+            ctx.beginPath();
+            ctx.roundRect(40, 180, 640, 125, 20);
+            ctx.fill();
+
+            ctx.fillStyle = '#5eead4';
+            ctx.font = 'bold 15px Inter, sans-serif';
+            ctx.fillText('ESTIMASI GAJI BERSIH (TAKE-HOME PAY)', 70, 218);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 40px Inter, sans-serif';
+            ctx.fillText(formatNtd(c.netPay), 70, 265);
+
+            ctx.fillStyle = '#99f6e4';
+            ctx.font = '600 18px Inter, sans-serif';
+            ctx.fillText('≈ ' + formatIdr(c.netPayIdr), 410, 262);
+
+            // Details Box
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(40, 330, 640, 420, 20);
+            ctx.fill();
+            ctx.stroke();
+
+            let y = 375;
+            const drawRow = (left, right, bold = false, color = '#1e293b') => {
+                ctx.fillStyle = color;
+                ctx.font = (bold ? 'bold ' : '') + '18px Inter, sans-serif';
+                ctx.fillText(left, 70, y);
+                ctx.textAlign = 'right';
+                ctx.fillText(right, 650, y);
+                ctx.textAlign = 'left';
+                y += 36;
+            };
+
+            drawRow('A. PENDAPATAN KOTOR', formatNtd(c.grossPay), true, '#047857');
+            drawRow('Upah Pokok Bulanan', formatNtd(c.base));
+            drawRow('Total Pendapatan Lembur', '+ ' + formatNtd(c.totalOvertimePay));
+            drawRow('Tunjangan & Bonus', '+ ' + formatNtd(c.totalAllowances));
+
+            y += 10;
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.beginPath();
+            ctx.moveTo(70, y - 20);
+            ctx.lineTo(650, y - 20);
+            ctx.stroke();
+
+            drawRow('B. TOTAL POTONGAN', '- ' + formatNtd(c.totalDeductions), true, '#be123c');
+            drawRow('Asuransi Kesehatan (NHI) & Tenaga Kerja (LI)', '- ' + formatNtd(c.nhiFee + c.liFee));
+            drawRow('Biaya Servis Agensi', '- ' + formatNtd(c.agencyFee));
+            drawRow(`Pajak Penghasilan (${Math.round(c.taxRate * 100)}%)`, '- ' + formatNtd(c.taxAmount));
+            drawRow('Potongan Mes, Makan & Lainnya', '- ' + formatNtd(c.dormFee + c.otherDed));
+
+            // Footer
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '14px Inter, sans-serif';
+            ctx.fillText('Dihasilkan oleh Kalkulator Gaji & Lembur PMI Taiwan', 40, 790);
+
+            const link = document.createElement('a');
+            link.download = `Slip_Gaji_PMI_${label.replace(/\s+/g, '_')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            showToast('Gambar slip gaji (PNG) berhasil diunduh!');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 2600);
+        }
+
+        // --- BIND SLIDERS & INPUTS ---
+        function bindAllInputs() {
+            document.getElementById('baseSalary').addEventListener('input', (e) => {
+                state.baseSalary = Number(e.target.value) || 0;
+                calculateAll();
+            });
+            document.getElementById('kursIdr').addEventListener('input', (e) => {
+                state.kursIdr = Number(e.target.value) || 505;
+                calculateAll();
+            });
+
+            const sliderConfigs = [
+                { id: 'wdDays', valId: 'wdDaysVal', key: 'wdDays' },
+                { id: 'wdHours', valId: 'wdHoursVal', key: 'wdHours' },
+                { id: 'rdDays', valId: 'rdDaysVal', key: 'rdDays' },
+                { id: 'rdHours', valId: 'rdHoursVal', key: 'rdHours' },
+                { id: 'nhDays', valId: 'nhDaysVal', key: 'nhDays' },
+                { id: 'infSundayDays', valId: 'infSundayDaysVal', key: 'infSundayDays' },
+                { id: 'infNhDays', valId: 'infNhDaysVal', key: 'infNhDays' },
+                { id: 'dormFee', valId: 'dormFeeVal', key: 'dormFee', format: true }
+            ];
+
+            sliderConfigs.forEach(cfg => {
+                const el = document.getElementById(cfg.id);
+                el.addEventListener('input', (e) => {
+                    const val = Number(e.target.value);
+                    state[cfg.key] = val;
+                    document.getElementById(cfg.valId).textContent = cfg.format ? val.toLocaleString('id-ID') : val;
+                    calculateAll();
+                });
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initPwaSupport();
+            lucide.createIcons();
+            bindAllInputs();
+            renderCalendar();
+            renderHistory();
+            calculateAll();
+        });
+    </script>
+</body>
+</html>
+```
